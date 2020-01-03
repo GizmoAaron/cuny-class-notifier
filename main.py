@@ -5,7 +5,7 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import *
-from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import Select
 
 from playsound import playsound
@@ -79,39 +79,43 @@ def main():
     #options.binary_location = "C:/Program Files (x86)/Google/Chrome Beta/Application/chrome.exe"
     if not args.visible:
         options.add_argument('headless')
-    driver = webdriver.Chrome(
-        chrome_options=options,
-        executable_path="C:/Downloads/chromedriver_win32/chromedriver.exe",
+    driver = webdriver.Firefox(
+        options = options,
+        executable_path=r""
     )
-    driver.get("https://globalsearch.cuny.edu/")
-    collegeID = driver.find_elements_by_xpath("//*[contains(text(), '" +
-                                              institution +
-                                              "')]")[0].get_attribute("for")
-    driver.find_element_by_id(collegeID).click()
-    selecttermyear = Select(driver.find_element_by_id('t_pd'))
-    selecttermyear.select_by_visible_text(str(year) + " " + term + " Term")
-    driver.find_element_by_name('next_btn').click()
+    SignUp(driver,term,classnum)
+    # driver.get("https://globalsearch.cuny.edu/")
+    # time.sleep(3)
+    # collegeIDpartial = driver.find_elements_by_xpath("//*[contains(text(),'" + institution + "')]")
+    # print("//*[text()[contains(., '" + institution + "')]]")
+    # print('List size = ' + str(len(collegeIDpartial)))
+    # if(len(collegeIDpartial) == 0): sys.exit()
+    # collegeID = collegeIDpartial[0].get_attribute("for")
+    # #collegeID = "QNS01"
+    # driver.find_element_by_id(collegeID).click()
+    # selecttermyear = Select(driver.find_element_by_id('t_pd'))
+    # selecttermyear.select_by_visible_text(str(year) + " " + term + " Term")
+    # driver.find_element_by_name('next_btn').click()
 
-    selectsubject = Select(driver.find_element_by_id('subject_ld'))
-    selectsubject.select_by_visible_text(str(subject))
-    selectcareer = Select(driver.find_element_by_id('courseCareerId'))
-    selectcareer.select_by_visible_text('Undergraduate')
-    driver.find_element_by_id(
-        'open_classId').click()  #uncheck open classes only
-    driver.find_element_by_id('btnGetAjax').click()
-    classhtml = collegeID = driver.find_elements_by_xpath(
-        "//*[contains(text(), '" + str(classnum) + "')]")[0].get_attribute("href")
+    # selectsubject = Select(driver.find_element_by_id('subject_ld'))
+    # selectsubject.select_by_visible_text(str(subject))
+    # selectcareer = Select(driver.find_element_by_id('courseCareerId'))
+    # selectcareer.select_by_visible_text('Undergraduate')
+    # driver.find_element_by_id(
+    #     'open_classId').click()  #uncheck open classes only
+    # driver.find_element_by_id('btnGetAjax').click()
+    # classhtml = collegeID = driver.find_elements_by_xpath(
+    #     "//*[contains(text(), '" + str(classnum) + "')]")[0].get_attribute("href")
 
-    while not flag:
-        driver.get(str(classhtml))
-        classstatus = driver.find_element_by_id(
-            'SSR_CLS_DTL_WRK_SSR_DESCRSHORT').get_attribute('innerHTML')
-        if classstatus == "Open":
-            flag = True
-            for x in range(10):
-                playsound('sound.mp3')
-                time.sleep(1)
-        print(classstatus)
+    # while not flag:
+    #     driver.get(str(classhtml))
+    #     classstatus = driver.find_element_by_id(
+    #         'SSR_CLS_DTL_WRK_SSR_DESCRSHORT').get_attribute('innerHTML')
+    #     if classstatus == "Open":
+    #         flag = True
+    #         SignUp(driver,term,classnum)
+    #     print(classstatus)
+    #     time.sleep(30)
 
 
 def yearmenu():
@@ -181,6 +185,47 @@ def institutionmenu():
             return input("Enter FULL institution name: ")
         else:
             print("I don't understand your choice.")
+
+def CUNYEmail():
+    return input("Enter your Cuny Email: ")
+
+def Password():
+    return input("Enter your Cunyfirst Password: ")
+
+def SignUp(driver,term,classnumber):
+    email = CUNYEmail()
+    password = Password()
+    driver.get("https://cunyfirst.cuny.edu")
+    Usernameinput = driver.find_element_by_id("CUNYfirstUsernameH")
+    Usernameinput.clear()
+    Usernameinput.send_keys(email)
+    PasswordInput = driver.find_element_by_id("CUNYfirstPassword")
+    PasswordInput.send_keys(password)
+    driver.find_element_by_id("submit").click()
+    time.sleep(3)
+    ElementList = driver.find_elements_by_tag_name("tr")
+    print(len(ElementList))
+    SCElement = driver.find_element_by_id("crefli_HC_SSS_STUDENT_CENTER")
+    SCElement.find_element_by_tag_name("a").click()
+    time.sleep(3)
+    frame = driver.find_element_by_tag_name("iframe")
+    driver.switch_to.frame(frame)
+    EnrElement = driver.find_element_by_xpath("//*[contains(text(),'Enroll')]").click()
+    #get the element id which contains Semester
+    time.sleep(3)
+    ID = driver.find_element_by_xpath("//*[contains(text(),'" + term + "')]").get_attribute("id")[-1]
+    print(ID)
+    #combine the id with the expected Radio Button id
+    RadioID = "SSR_DUMMY_RECV1$sels$" + ID + "$$0"
+    #search for element with RadioID
+    driver.find_element_by_id(RadioID).click()
+    driver.find_element_by_id("DERIVED_SSS_SCT_SSR_PB_GO").click()
+    time.sleep(3)
+    classbox = driver.find_element_by_id("DERIVED_REGFRM1_CLASS_NBR")
+    classbox.send_keys(classnumber)
+    driver.find_element_by_id("DERIVED_REGFRM1_SSR_PB_ADDTOLIST2$9$").click()
+    time.sleep(1)
+    driver.find_element_by_id("DERIVED_CLS_DTL_NEXT_PB$280$").click()
 
 
 main()
