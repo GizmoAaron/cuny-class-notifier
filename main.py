@@ -204,7 +204,6 @@ def SignUp(driver,term,classnumber):
     driver.find_element_by_id("submit").click()
     time.sleep(3)
     ElementList = driver.find_elements_by_tag_name("tr")
-    print(len(ElementList))
     SCElement = driver.find_element_by_id("crefli_HC_SSS_STUDENT_CENTER")
     SCElement.find_element_by_tag_name("a").click()
     time.sleep(3)
@@ -214,7 +213,6 @@ def SignUp(driver,term,classnumber):
     #get the element id which contains Semester
     time.sleep(3)
     ID = driver.find_element_by_xpath("//*[contains(text(),'" + term + "')]").get_attribute("id")[-1]
-    print(ID)
     #combine the id with the expected Radio Button id
     RadioID = "SSR_DUMMY_RECV1$sels$" + ID + "$$0"
     #search for element with RadioID
@@ -224,8 +222,22 @@ def SignUp(driver,term,classnumber):
     classbox = driver.find_element_by_id("DERIVED_REGFRM1_CLASS_NBR")
     classbox.send_keys(classnumber)
     driver.find_element_by_id("DERIVED_REGFRM1_SSR_PB_ADDTOLIST2$9$").click()
+    try:
+        time.sleep(1)
+        driver.find_element_by_id("DERIVED_CLS_DTL_NEXT_PB$280$").click()
+    except:
+        print("The class is already in the cart")
+    time.sleep(3)
+    #find the element id that holds the class
+    ID = driver.find_element_by_xpath("//a[text()[contains(.,'" + str(classnumber) + "')]]").get_attribute("id")[-1]
+    #click on the box with the ID related to the class
+    driver.find_element_by_id("P_SELECT$"+ID).click()
+    #click on enroll
+    driver.find_element_by_id("DERIVED_REGFRM1_LINK_ADD_ENRL").click()
+    #remember to uncomment below
     time.sleep(1)
-    driver.find_element_by_id("DERIVED_CLS_DTL_NEXT_PB$280$").click()
+    driver.find_element_by_id("DERIVED_REGFRM1_SSR_PB_SUBMIT").click()
+    
 
 
 main()
